@@ -41,5 +41,6 @@ app.post('/chat', async (req, res) => {
 });
 
 app.get('/', (_, res) => res.sendFile(join(__dirname, 'public', 'index.html')));
+app.get('/test', (_, res) => res.json({ key: process.env.ANTHROPIC_API_KEY ? 'KEY FOUND' : 'NO KEY' }));
 app.get('/health', (_, res) => res.json({ status: 'ok' }));
 app.listen(PORT, () => console.log('Bella running on port ' + PORT));
