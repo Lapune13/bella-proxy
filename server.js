@@ -32,11 +32,11 @@ app.post('/chat', async (req, res) => {
       })
     });
     const data = await response.json();
-    if (!response.ok) return res.status(response.status).json({ error: data });
+    if (!response.ok) return res.status(response.status).json({ error: data, status: response.status });
     res.json(data);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: err.message });
   }
 });
 
