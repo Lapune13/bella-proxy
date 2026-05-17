@@ -34,6 +34,8 @@ body{background:#120900;display:flex;align-items:center;justify-content:center;m
 #txt:focus{border-color:#c8772a;}
 #btn{width:36px;height:36px;border-radius:50%;background:#c8772a;border:none;cursor:pointer;color:#fff;font-size:18px;display:flex;align-items:center;justify-content:center;}
 #btn:hover{background:#e08830;}
+#mute{width:36px;height:36px;border-radius:50%;background:#2a1f0e;border:1px solid #c8772a;cursor:pointer;color:#c8772a;font-size:16px;display:flex;align-items:center;justify-content:center;}
+#mute:hover{background:#c8772a;color:#fff;}
 </style>
 </head>
 <body>
@@ -46,13 +48,70 @@ body{background:#120900;display:flex;align-items:center;justify-content:center;m
   <div class="msgs" id="msgs"></div>
   <div class="inp">
     <input id="txt" placeholder="Ask me anything about Bella Vista..." autocomplete="off"/>
+    <button id="mute" title="Toggle voice">🔊</button>
     <button id="btn">➤</button>
   </div>
 </div>
 
 <script>
+const SYS=`You are "Bella", the warm and knowledgeable AI assistant for Bella Vista — Camden's authentic Italian restaurant at 47 Camden High Street, London NW1 7JH. Phone: +44 20 7485 1234. Email: hello@bellavista-camden.co.uk. Website: www.bellavista-camden.co.uk.
+
+OPENING HOURS: Mon-Wed 12pm-10:30pm | Thu 12pm-11pm | Fri 12pm-11:30pm | Sat 11:30am-11:30pm (brunch from 11:30am) | Sun 11:30am-10pm (Sunday family roast from 12pm). Last seating and kitchen close 30 min before closing. Bank holidays same as Sunday.
+
+MENU:
+ANTIPASTI: Bruschetta al Pomodoro 7.50 (vegan), Burrata Pugliese 12 (veg), Carpaccio di Manzo 14.50, Calamari Fritti 11, Antipasto della Casa for 2 at 22
+PASTA/RISOTTO: Spaghetti alle Vongole 18.50, Tagliatelle al Ragu Bolognese 16, Risotto ai Funghi Porcini 19 (veg), Lasagna della Nonna 15.50, Gnocchi al Gorgonzola 15 (veg), Penne all Arrabbiata 13.50 (vegan)
+MAINS: Osso Buco Milanese 26.50, Pollo alla Parmigiana 19.50, Branzino al Forno 24, Bistecca alla Fiorentina 8.50 per 100g min 800g, Melanzane alla Parmigiana 15.50 (veg)
+PIZZA wood-fired: Margherita 12.50 (veg), Diavola 14.50, Quattro Formaggi 15 (veg), Prosciutto e Funghi 15.50, Capricciosa 16
+DESSERTS: Tiramisu 8.50, Panna Cotta 8, Cannoli Siciliani 2pc at 9, Affogato 7.50
+DRINKS: House wine glass 7, carafe 18, bottle 25. Aperol Spritz 10, Negroni 11, Campari Soda 9. Peroni/Moretti 5.50. Espresso 3, Cappuccino 3.50, Italian sodas 4.
+
+SET MENUS: Weekday lunch Mon-Fri 12-3pm: 2 courses 18, 3 courses 22. Sunday family roast: 24 per adult, 12 per child under 12. Tasting menu groups 8 or more: 45 per person 5 courses.
+
+ALLERGENS: Full allergen menu on request. Vegan and gluten-free pasta available on request. Cross-contamination possible — severe allergies MUST inform staff.
+
+RESERVATIONS: Strongly recommended Fri-Sun and evenings. Held 15 min after start time. Groups 8 or more require 10 per person deposit. Free cancellation up to 24h before. Walk-ins welcome with 30-45 min wait Fri-Sat evening. Birthday or anniversary gets complimentary dessert with candle if mentioned at booking.
+
+DELIVERY AND TAKEAWAY: Via phone, website, Deliveroo, Uber Eats, Just Eat. Delivery within 3 miles. Hours 12pm-10pm daily. Collection 25-35 min off-peak, 40-60 min Fri-Sat. No minimum for collection, 15 minimum for delivery. Family Bundle 55: 2 pizzas plus 1 pasta plus tiramisu plus wine, takeaway only.
+
+POLICIES: Dress code smart casual, no swimwear or gym wear in evenings. Kids very welcome, high chairs available, kids menu 8 includes pasta plus ice cream plus drink. Pets: assistance dogs only indoors, well-behaved dogs welcome on terrace. Large groups 8-30: private dining room, 45 per person tasting menu or 35 per person set menu, deposit required. Private hire Sun-Wed evenings: email events@bellavista-camden.co.uk. Corkage 15 per bottle. Service charge optional 12.5 percent for groups of 6 or more. Payments: Visa, Mastercard, Amex, Apple Pay, Google Pay, cash.
+
+ACCESSIBILITY: Wheelchair accessible, step-free entrance, accessible toilet on ground floor. Nearest tube: Camden Town Northern Line 3 min walk. Parking: Camden Parkway 4 min walk, Camden Lock 6 min walk. Free wifi password: BellaVista2024. Heated outdoor terrace 24 covers year-round.
+
+STYLE: Be warm, professional and concise with Italian warmth. Never guess allergens — offer to escalate to staff if uncertain. For allergen incidents escalate immediately and say manager will contact right away; if medical reaction advise calling 999. For complaints apologize briefly and say manager will contact within 1 hour during opening hours.`;
+
 const msgs=[];
 let busy=false;
+let voiceOn=true;
+let selectedVoice=null;
+
+function loadVoice(){
+  const voices=window.speechSynthesis.getVoices();
+  selectedVoice=voices.find(v=>v.lang==='en-GB' && v.name.toLowerCase().includes('female'))
+    || voices.find(v=>v.lang==='en-GB')
+    || voices.find(v=>v.lang.startsWith('en'))
+    || null;
+}
+window.speechSynthesis.onvoiceschanged=loadVoice;
+loadVoice();
+
+function speak(text){
+  if(!voiceOn) return;
+  window.speechSynthesis.cancel();
+  const clean=text.replace(/<[^>]*>/g,'').replace(/\*\*/g,'').replace(/[•\-]/g,'');
+  const utt=new SpeechSynthesisUtterance(clean);
+  utt.voice=selectedVoice;
+  utt.lang='en-GB';
+  utt.rate=0.95;
+  utt.pitch=1.05;
+  window.speechSynthesis.speak(utt);
+}
+
+document.getElementById('mute').addEventListener('click',function(){
+  voiceOn=!voiceOn;
+  this.textContent=voiceOn?'🔊':'🔇';
+  if(!voiceOn) window.speechSynthesis.cancel();
+});
 
 function scroll(){
   const m=document.getElementById('msgs');
@@ -125,10 +184,7 @@ async function send(text){
     const r=await fetch('/chat',{
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        system:'You are Bella, the friendly AI assistant for Bella Vista, an authentic Italian restaurant at 47 Camden High Street, London NW1 7JH. Phone: +44 20 7485 1234. Hours: Mon-Wed 12pm-10:30pm, Thu 12pm-11pm, Fri 12pm-11:30pm, Sat 11:30am-11:30pm, Sun 11:30am-10pm. Menu includes wood-fired pizzas from £12.50, fresh pasta from £13.50, mains from £15.50, starters from £7.50. Delivery via Deliveroo, Uber Eats, Just Eat within 3 miles. Be warm, concise and helpful.',
-        messages:msgs
-      })
+      body:JSON.stringify({system:SYS,messages:msgs})
     });
     removeDots();
     if(!r.ok){addMsg('bot','Sorry, something went wrong. Please call +44 20 7485 1234.');busy=false;return;}
@@ -136,10 +192,10 @@ async function send(text){
     const reply=data.content.map(c=>c.text||'').join('');
     msgs.push({role:'assistant',content:reply});
     addMsg('bot',reply.replace(/\n/g,'<br>'));
+    speak(reply);
   }catch(e){
     removeDots();
-    console.error('Error:',e);
-    addMsg('bot','Connection error: '+e.message);
+    addMsg('bot','Connection error. Please call +44 20 7485 1234.');
   }
   busy=false;
 }
@@ -152,8 +208,9 @@ document.getElementById('txt').addEventListener('keydown',function(e){
   if(e.key==='Enter'){send(this.value);}
 });
 
-// Greeting
-addMsg('bot','👋 Ciao! I\'m Bella, your virtual assistant at Bella Vista. How can I help you today?');
+const greeting='Ciao! I am Bella, your virtual assistant at Bella Vista. How can I help you today?';
+addMsg('bot','👋 '+greeting);
+speak(greeting);
 addChips(['Book a table','View menu','Opening hours','Delivery','FAQ']);
 </script>
 </body>
