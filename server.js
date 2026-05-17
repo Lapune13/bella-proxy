@@ -42,4 +42,4 @@ app.post('/chat', async (req, res) => {
 
 app.get('/', (_, res) => res.sendFile(join(__dirname, 'public', 'index.html')));
 app.get('/health', (_, res) => res.json({ status: 'ok' }));
-app.listen(PORT, () => console.log(`Bella running on http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`Bella v2 running on port ${PORT}`));
